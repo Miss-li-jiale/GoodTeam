@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	 xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:p="http://www.springframework.org/schema/p" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.springframework.org/schema/mvc
+                        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                        http://www.springframework.org/schema/aop
+                        http://www.springframework.org/schema/aop/spring-aop.xsd
+                         http://www.springframework.org/schema/tx
+                        http://www.springframework.org/schema/tx/spring-tx.xsd">
+   <!-- 扫描注解 -->
+   <context:component-scan base-package="cn.jbit.service"/>
+   <!-- 读取database.properties -->
+   <context:property-placeholder location="classpath:database.properties"/>
+   <!-- 配置数据源 -->
+   <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+    <!-- 驱动driver -->
+    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    <!-- 路径url -->
+    <property name="url" value="jdbc:mysql://127.0.0.1:3306/ebook?useUnicode=true&amp;characterEncoding=utf-8"/>
+    <!-- 用户名username -->
+    <property name="username" value="root"/>
+    <!-- 密码password -->
+    <property name="password" value="123"/>
+   </bean>
+   <!-- 配置sqlSession -->
+   <bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+    <!-- 注入数据源 -->
+    <property name="dataSource" ref="dataSource"/>
+    <!-- 读取MyBatis文件 -->
+    <property name="configLocation" value="classpath:mybatis-config.xml"/>
+   </bean>
+   <!-- 扫描xml文件 -->
+   <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+   <!-- 引入sqlSession -->
+   <property name="sqlSessionFactory" ref="sqlSession"/>
+   <!-- 扫描mapper.xml -->
+   <property name="basePackage" value="cn.jbit.dao"/>
+   </bean>
+   <!-- 配置事务管理 -->
+   <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+   <property name="dataSource" ref="dataSource"/>
+   </bean>
+   <!-- 定义事务规则 -->
+   <tx:advice id="txAdvice" transaction-manager="txManager">
+   <tx:attributes>
+   <tx:method name="find*" read-only="true"/>
+   <tx:method name="*" propagation="REQUIRED"/>
+   </tx:attributes>
+   </tx:advice>
+   <!-- 定义切面 -->
+   <aop:config>
+   <aop:pointcut expression="execution(* *cn.jbit.service..*(..))" id="pointcut"/>
+   <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>
+   </aop:config>
+   
+   
+   
+   
+   
+   
+   
+</beans>
